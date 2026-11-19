@@ -24,7 +24,7 @@ const document={body:{classList:classes()},documentElement:{},getElementById:ele
 const restoredContext={...context,document,window:null};restoredContext.window=restoredContext;vm.createContext(restoredContext);vm.runInContext(script,restoredContext);assert.equal(restoredContext.SACW.getSnapshot().logs.demo.length,1);assert.equal(restoredContext.SACW.getSnapshot().settings.mycall,'ZP5DXS');assert.equal(restoredContext.SACW.calculate().points,1);
 console.log('OK · SACW points/multipliers, dupes, period, categories, Cabrillo columns, ADIF, CAT allowlist, ES/PT, full HTML and Enter/persistence flow.');
 assert.equal(parseFrequency('7025'),7025000);assert.equal(parseFrequency('7.025'),7025000);assert.equal(parseFrequency('7.025.000'),7025000);assert.equal(parseFrequency('21025,1'),21025100);assert.equal(decodeBCD(encodeBCD(28025100)),28025100);
-for(const profile of Object.values(rigs).filter(profile=>!profile.hamlib)){const test=new SacwCAT();test.profile=profile;test.address=profile.address||0x94;const commands=[];test.writer={write:async bytes=>commands.push([...bytes])};await test.poll();if(profile.protocol==='icom'){test.parseCiv([0xfe,0xfe,0xe0,test.address,3,...encodeBCD(7025000),0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,4,3,1,0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,15,0,0xfd]);await assert.rejects(test.civ(0x1c,[0,1]));}else{test.parse(profile.protocol==='kenwood'?'FA00007025000':'FA007025000');test.parse(profile.protocol==='kenwood'?'MD3':'MD03');test.parse('FT0');if(profile.protocol==='kenwood')test.parse('FR0');await assert.rejects(test.send('TX1;'));}assert.equal(test.state.hz,7025000,profile.name);assert.equal(test.state.mode,'3',profile.name);assert.equal(test.state.split,false,profile.name);test.state.connected=true;await test.tune(21025000);assert(commands.length>=2);}
+for(const profile of Object.values(rigs).filter(profile=>!profile.hamlib&&profile.protocol!=='ft817')){const test=new SacwCAT();test.profile=profile;test.address=profile.address||0x94;const commands=[];test.writer={write:async bytes=>commands.push([...bytes])};await test.poll();if(profile.protocol==='icom'){test.parseCiv([0xfe,0xfe,0xe0,test.address,3,...encodeBCD(7025000),0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,4,3,1,0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,15,0,0xfd]);await assert.rejects(test.civ(0x1c,[0,1]));}else{test.parse(profile.protocol==='kenwood'?'FA00007025000':'FA007025000');test.parse(profile.protocol==='kenwood'?'MD3':'MD03');test.parse('FT0');if(profile.protocol==='kenwood')test.parse('FR0');await assert.rejects(test.send('TX1;'));}assert.equal(test.state.hz,7025000,profile.name);assert.equal(test.state.mode,'3',profile.name);assert.equal(test.state.split,false,profile.name);test.state.connected=true;await test.tune(21025000);assert(commands.length>=2);}
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Duplicate HTML IDs');assert(!html.includes('name="facebook"'));assert(!html.includes('name="checklog"'));assert(!html.includes('id="entryHint"'));assert(!html.includes('id="stepHint"'));assert(html.includes('<span id="mode"'));
 vm.runInContext('state.workspace="demo";resetEntry();',restoredContext);element('call').value='PY2ZZ';element('call').event_keydown({key:'Enter',preventDefault(){}});assert.equal(document.activeElement.id,'exchange');element('exchange').event_keydown({key:'Enter',preventDefault(){}});assert.equal(document.activeElement.id,'frequency');element('frequency').value='21025';element('qsoForm').onsubmit({preventDefault(){}});let snapshot=restoredContext.SACW.getSnapshot();assert.equal(snapshot.logs.demo.at(-1).hz,21025000);assert.equal(snapshot.logs.demo.at(-1).band,'15');
 vm.runInContext('editQso(state.logs.demo.at(-1).id)',restoredContext);assert.equal(element('qsoEditor').open,true);element('editName').value='Updated name';element('editFreq').value='28025';element('editForm').onsubmit({preventDefault(){}});snapshot=restoredContext.SACW.getSnapshot();assert.equal(snapshot.logs.demo.at(-1).name,'Updated name');assert.equal(snapshot.logs.demo.at(-1).band,'10');assert.equal(element('qsoEditor').open,false);assert.equal(snapshot.logs.demo.length,2);
@@ -60,3 +60,45 @@ optedOutContext.location={protocol:'http:',hostname:'127.0.0.1',origin:'http://1
 vm.runInContext('state.workspace="free";state.settings.shareScore=true;liveBoards.free=carouselFixture;liveReceived.free=Date.now();paintNetwork();',optedOutContext);assert.equal(element('globalStats').hidden,true);assert.equal(element('categoryStrip').hidden,false);vm.runInContext('carouselIndex=0;advanceCategoryCarousel(1)',optedOutContext);assert.equal(vm.runInContext('carouselIndex',optedOutContext),1);vm.runInContext('openCategoryRanking("ALL:HIGH")',optedOutContext);assert.equal(element('categoryRanking').open,true);assert(element('categoryRankingRows').innerHTML.includes('CE3AA'));element('categoryRankingClose').onclick();assert.equal(element('categoryRanking').open,false);element('categoryPause').onclick();assert.equal(vm.runInContext('carouselPaused',optedOutContext),true);console.log('OK · LIBRE local-only sidebar, automatic-carousel navigation/pause and full ranking beyond three places.');
 
 assert(!template.includes('data-i="qrzNote"'));assert(!template.includes('data-i="rigNote"'));assert.equal(rigs.g90.protocol,'icom');assert.equal(rigs.g90.address,0x88);assert.equal(rigs.g90.defaultBaud,19200);element('rigSelect').value='g90';element('rigSelect').onchange();assert.equal(element('setting-baud').value,'19200');assert.equal(element('setting-civAddress').value,'88');assert(element('rigSelect').innerHTML.includes('Conexión manual'));assert(rigs['yaesu-generic']&&rigs['kenwood-generic']&&rigs['icom-generic']);console.log('OK · removed notices, manual CAT profiles and G90 CI-V/baud defaults.');
+
+const ft817Commands=[];
+let ft817Rx,ft817Settings,ft817Closed=false,ft817Digits=[0x00,0x70,0x25,0x00],ft817Mode=0x02;
+const ft817Port={
+ async open(options){ft817Settings=options;},
+ async close(){ft817Closed=true;},
+ readable:new ReadableStream({start(controller){ft817Rx=controller;}}),
+ writable:new WritableStream({write(bytes){
+  const frame=[...bytes],opcode=frame[4];
+  ft817Commands.push(frame);
+  if(opcode===0x01){
+   ft817Digits=frame.slice(0,4);
+   ft817Rx.enqueue(Uint8Array.of(0));
+  }else if(opcode===0x07){
+   ft817Mode=frame[0];
+  }else if(opcode===0x03){
+   ft817Rx.enqueue(Uint8Array.from(ft817Digits.slice(0,2)));
+   ft817Rx.enqueue(Uint8Array.from([...ft817Digits.slice(2),ft817Mode]));
+  }else assert.fail('Unexpected CAT command');
+ }})
+};
+const navigatorDescriptor=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+Object.defineProperty(globalThis,'navigator',{configurable:true,value:{serial:{requestPort:async()=>ft817Port}}});
+const ft817=new SacwCAT();
+try{
+ await ft817.connect({rig:'ft817',baud:38400});
+ assert.deepEqual(ft817Settings,{baudRate:38400,dataBits:8,stopBits:2,parity:'none',flowControl:'none'});
+ assert.equal(ft817.state.hz,7025000);
+ assert.equal(ft817.state.mode,'3');
+ await ft817.tune(14023456);
+ assert.equal(ft817.state.hz,14023450);
+ await ft817.mode('7');
+ assert.equal(ft817.state.mode,'7');
+ assert.deepEqual(ft817Commands,[
+  [0,0,0,0,3],[0x01,0x40,0x23,0x45,1],[0,0,0,0,3],[3,0,0,0,7],[0,0,0,0,3]
+ ]);
+}finally{
+ await ft817.disconnect();
+ Object.defineProperty(globalThis,'navigator',navigatorDescriptor);
+}
+assert(ft817Closed);
+console.log('OK · FT-817/817ND Web Serial, 8N2, fragmented replies, frequency and mode readback, no PTT.');

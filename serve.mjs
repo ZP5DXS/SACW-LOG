@@ -26,7 +26,7 @@ export function createServer(){const spots=createSpotService(),hamlib=createHaml
     return remote.ok?reply(200,await remote.json()):reply(503,{error:'SPOT_OFFLINE'});
    }catch{return reply(503,{error:'SPOT_OFFLINE'});}
   }
-  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.4',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
+  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.5',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
   if(name==='api/sync'||name==='api/live/events'){
    const upstream=new URL(url.pathname.replace(/^\/+/,'')+url.search,(process.env.SACW_LIVE_UPSTREAM||'http://127.0.0.1:18791/').replace(/\/?$/,'/'));
    if(name==='api/live/events'){const controller=new AbortController();res.on('close',()=>controller.abort());const remote=await fetch(upstream,{signal:controller.signal});if(!remote.ok)return reply(503,{error:'LIVE_OFFLINE'});res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','X-Accel-Buffering':'no'});try{for await(const chunk of remote.body)res.write(chunk);}catch{}res.end();return;}

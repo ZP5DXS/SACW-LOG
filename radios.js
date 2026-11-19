@@ -1,7 +1,7 @@
 // Native Web Serial profiles and legacy Yaesu profiles supported through local Hamlib.
 export const rigs={
  '101':{name:'Yaesu FTDX101MP / D',protocol:'yaesu'},'891':{name:'Yaesu FT-891',protocol:'yaesu'},'ftdx10':{name:'Yaesu FTDX10',protocol:'yaesu'},'ft710':{name:'Yaesu FT-710',protocol:'yaesu'},'ft991':{name:'Yaesu FT-991 / 991A',protocol:'yaesu'},
- 'ft817':{name:'Yaesu FT-817 / FT-817ND',protocol:'hamlib',hamlib:1020,defaultBaud:4800},
+ 'ft817':{name:'Yaesu FT-817 / FT-817ND',protocol:'ft817',defaultBaud:4800,baudRates:[4800,9600,38400]},
  'ft818':{name:'Yaesu FT-818',protocol:'hamlib',hamlib:1041,defaultBaud:4800},
  'ft747':{name:'Yaesu FT-747GX',protocol:'hamlib',hamlib:1005,defaultBaud:4800},
  'ft757':{name:'Yaesu FT-757GX',protocol:'hamlib',hamlib:1006,defaultBaud:4800},

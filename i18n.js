@@ -45,3 +45,16 @@ Object.assign(messages.pt,{
 
 Object.assign(messages.es,{cwspMember:'✓ Miembro CWSP en el padrón'});
 Object.assign(messages.pt,{cwspMember:'✓ Membro CWSP na lista'});
+
+Object.assign(messages.es,{
+ ft817Hint:'Conectá el cable CAT al puerto ACC y usá la velocidad del menú 14 (CAT RATE). Pulsá Conectar CAT para elegir el COM. Usá VFO con SPLIT desactivado.',
+ CAT_FT817_BAUD:'El FT-817 admite 4800, 9600 o 38400. Elegí el valor del menú 14 (CAT RATE).',
+ CAT_FT817_TIMEOUT:'El FT-817 no respondió. Revisá el puerto COM, el cable CAT en ACC y la velocidad del menú 14.',
+ CAT_FT817_REJECTED:'El FT-817 no aplicó el cambio. Revisá que esté en VFO y con SPLIT desactivado.'
+});
+Object.assign(messages.pt,{
+ ft817Hint:'Conecte o cabo CAT à porta ACC e use a velocidade do menu 14 (CAT RATE). Clique em Conectar CAT para escolher a porta COM. Use VFO com SPLIT desativado.',
+ CAT_FT817_BAUD:'O FT-817 aceita 4800, 9600 ou 38400. Selecione o valor do menu 14 (CAT RATE).',
+ CAT_FT817_TIMEOUT:'O FT-817 não respondeu. Verifique a porta COM, o cabo CAT em ACC e a velocidade do menu 14.',
+ CAT_FT817_REJECTED:'O FT-817 não aplicou a alteração. Verifique se está em VFO com SPLIT desativado.'
+});
