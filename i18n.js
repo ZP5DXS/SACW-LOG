@@ -25,20 +25,12 @@ Object.assign(messages.es,{radio:'Conexión CAT',knownModels:'Modelos',manualCon
 Object.assign(messages.es,{downloadWindows:'Descargar para Windows ↗',qrzNeedsServer:'Abrí la aplicación desde su web o versión portable.'});Object.assign(messages.pt,{downloadWindows:'Baixar para Windows ↗',qrzNeedsServer:'Abra o aplicativo pela web ou versão portátil.'});
 
 Object.assign(messages.es,{
- sentSpotsTitle:'Mis spots',receivedSpotsTitle:'Quiénes me escuchan',spotConfig:'Auto spot',
- spotInterval:'Intervalo (minutos)',spotUnavailable:'Publicación no disponible para este indicativo. Se requiere un nodo autorizado.',
- spotToken:'Clave de publicación',spotConsent:'El nodo y el concurso permiten el auto spot. Activar solo mientras estoy llamando CQ.',
- spotStart:'Activar',spotStop:'Detener',spotNext:'Próximo intento en',spotWaiting:'Esperando frecuencia válida en CW.',
- spotsEmpty:'Sin spots recientes.',spotQueued:'Enviado al nodo. El spot se mostrará cuando aparezca en el feed.',
- spotError:'El nodo no aceptó la solicitud. Auto spot detenido.',spotPermission:'Revisá la conexión del nodo, la clave y el permiso de publicación.'
+ receivedSpotsTitle:'Quiénes me escuchan',spotsEmpty:'Sin spots recientes.',
+ spotChooseBand:'Seleccioná una banda.',spotEnterCall:'Cargá tu indicativo en Opciones.',spotOffline:'Fuente de spots sin conexión.'
 });
 Object.assign(messages.pt,{
- sentSpotsTitle:'Meus spots',receivedSpotsTitle:'Quem me escuta',spotConfig:'Auto spot',
- spotInterval:'Intervalo (minutos)',spotUnavailable:'Publicação indisponível para este indicativo. É necessário um nó autorizado.',
- spotToken:'Chave de publicação',spotConsent:'O nó e o concurso permitem auto spot. Ative somente enquanto estiver chamando CQ.',
- spotStart:'Ativar',spotStop:'Parar',spotNext:'Próxima tentativa em',spotWaiting:'Aguardando frequência válida em CW.',
- spotsEmpty:'Sem spots recentes.',spotQueued:'Enviado ao nó. O spot será exibido quando aparecer no feed.',
- spotError:'O nó não aceitou a solicitação. Auto spot interrompido.',spotPermission:'Verifique a conexão do nó, a chave e a permissão de publicação.'
+ receivedSpotsTitle:'Quem me escuta',spotsEmpty:'Sem spots recentes.',
+ spotChooseBand:'Selecione uma banda.',spotEnterCall:'Informe seu indicativo em Opções.',spotOffline:'Fonte de spots sem conexão.'
 });
 Object.assign(messages.es,{
  hamlibPort:'Puerto COM (Hamlib)',CAT_HAMLIB_LOCAL:'Abrí SACW LOG en el servidor local para conectar esta radio.',
@@ -53,32 +45,3 @@ Object.assign(messages.pt,{
 
 Object.assign(messages.es,{cwspMember:'✓ Miembro CWSP en el padrón'});
 Object.assign(messages.pt,{cwspMember:'✓ Membro CWSP na lista'});
-
-Object.assign(messages.es,{
- spotRegister:'Registro Telnet en RustyCluster ↗',
- spotRegistrationPending:'Auto spot pendiente de habilitación para este indicativo.',
- spotLogin:'Usá el indicativo del log. Conectá QRZ en Opciones y habilitá ese indicativo para publicar en el nodo.',
- spotPermission:'Conectá QRZ con el indicativo del log o ingresá tu clave de publicación. Confirmá el permiso en el nodo.',
- spotConfirmed:'El nodo confirmó el spot.',
- SPOT_ACCESS:'La sesión de QRZ o la clave no corresponde al indicativo del log.',
- SPOT_REGISTRATION:'El nodo requiere habilitar el indicativo para publicar.',
- SPOT_OFFLINE:'El nodo no respondió. Auto spot detenido.',
- SPOT_UNCONFIRMED:'El nodo no confirmó el spot. Revisá Mis spots antes de reintentar.',
- SPOT_INTERVAL:'Ya hubo un intento reciente para este indicativo.',
- SPOT_BUSY:'El nodo está ocupado. Volvé a activar en unos segundos.',
- SPOT_DISABLED:'La publicación no está habilitada.'
-});
-Object.assign(messages.pt,{
- spotRegister:'Registro Telnet no RustyCluster ↗',
- spotRegistrationPending:'Auto spot pendente de habilitação para este indicativo.',
- spotLogin:'Use o indicativo do log. Conecte o QRZ em Opções e habilite o indicativo para publicar no nó.',
- spotPermission:'Conecte o QRZ com o indicativo do log ou informe a chave de publicação. Confirme a permissão no nó.',
- spotConfirmed:'O nó confirmou o spot.',
- SPOT_ACCESS:'A sessão do QRZ ou a chave não corresponde ao indicativo do log.',
- SPOT_REGISTRATION:'O nó exige habilitação do indicativo para publicar.',
- SPOT_OFFLINE:'O nó não respondeu. Auto spot interrompido.',
- SPOT_UNCONFIRMED:'O nó não confirmou o spot. Confira Meus spots antes de tentar novamente.',
- SPOT_INTERVAL:'Houve uma tentativa recente para este indicativo.',
- SPOT_BUSY:'O nó está ocupado. Ative novamente em alguns segundos.',
- SPOT_DISABLED:'A publicação está desabilitada.'
-});

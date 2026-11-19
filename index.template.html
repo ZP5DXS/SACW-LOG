@@ -6,25 +6,12 @@
 <section class="panel categorystrip" id="categoryStrip" hidden><div class="panelhead"><h2 data-i="categoryLeaders">Top 3 por categoría</h2><div class="carouselcontrols"><button type="button" id="categoryPrevious" aria-label="Anterior">‹</button><button type="button" id="categoryPause" aria-label="Pausar"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></button><button type="button" id="categoryNext" aria-label="Siguiente">›</button></div></div><div id="categoryViewport" class="categoryviewport" tabindex="0" aria-label="Top 3"><div id="categoryLeaders" class="categorycards"></div></div></section>
 <div class="spot-grid">
  <section class="panel spot-panel">
-  <div class="panelhead"><h2 data-i="sentSpotsTitle">Mis spots</h2></div>
-  <details>
-   <summary data-i="spotConfig">Auto spot</summary>
-   <p id="spotPublisher" class="muted" aria-live="polite"></p>
-   <div class="spot-settings">
-    <label><span data-i="spotInterval">Intervalo (minutos)</span><input id="spotMinutes" type="number" min="10" max="120" value="15"></label>
-   </div>
-   <div id="spotLiveFields" hidden>
-    <p class="muted" data-i="spotLogin"></p><a id="spotNodeRegistration" class="muted" href="https://rustycluster.com/" target="_blank" rel="noopener" data-i="spotRegister" hidden></a><label id="spotCodeLabel" hidden><span data-i="spotToken">Clave de publicación</span><input id="spotToken" type="password" autocomplete="off"></label>
-    <label class="check"><input id="spotPolicy" type="checkbox"><span data-i="spotConsent">El nodo y el concurso permiten el auto spot. Activar solo mientras estoy llamando CQ.</span></label>
-   </div>
-   <div class="spot-actions"><button type="button" id="spotToggle" data-i="spotStart">Activar</button><span id="spotStatus"></span></div>
-   <p id="spotResult" role="status"></p>
-  </details>
-  <ul class="spot-list" id="sentSpots"></ul>
+  <div class="panelhead"><h2>DX Cluster</h2><span class="muted" id="clusterBand"></span></div>
+  <ul class="spot-list" id="clusterSpots" tabindex="0" aria-label="DX Cluster"></ul>
  </section>
  <section class="panel spot-panel">
-  <div class="panelhead"><h2 data-i="receivedSpotsTitle">Quiénes me escuchan</h2><span class="muted" id="spotFeeds"></span></div>
-  <ul class="spot-list" id="receivedSpots"></ul>
+  <div class="panelhead"><h2 id="receivedSpotsTitle" data-i="receivedSpotsTitle">Quiénes me escuchan</h2><span class="muted" id="spotFeeds"></span></div>
+  <ul class="spot-list" id="receivedSpots" tabindex="0" aria-labelledby="receivedSpotsTitle"></ul>
  </section>
 </div>
 <section class="panel logpanel" id="logPanel"><div class="panelhead"><h2 id="logTitle" data-i="log">Libro de guardia</h2><input id="search" data-placeholder="search" placeholder="Buscar indicativo…"><div class="actions"><button id="adif">ADIF ↓</button><button id="cabrillo">Cabrillo ↓</button></div></div><div class="tablewrap" id="logViewport" tabindex="0" role="region" aria-labelledby="logTitle"><table><thead><tr><th>UTC</th><th data-i="callsign">Indicativo</th><th>kHz / m</th><th>RST</th><th data-i="exchange">Intercambio</th><th data-i="country">País</th><th>Pts</th><th></th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty" data-i="empty">El próximo contacto empieza acá.</div></div><div class="logfooter"><span id="logCount"></span><span data-i="editHint">Clic en un QSO para editar.</span></div></section></div>

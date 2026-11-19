@@ -77,15 +77,11 @@ Aplicación independiente, sin afiliación oficial a QRZ o al comité SACW. Dato
 
 Para ejecutar o actualizar una instalación propia: [guía técnica](docs/DEPLOY.md).
 
-## DXFun, RBN y CAT Yaesu por Hamlib
+## DX Cluster, RBN y CAT por Hamlib
 
-El auto spot se puede activar y detener en Prueba, Libre y Concurso. Con un indicativo habilitado y el nodo conectado, pulsá **Activar** en **Mis spots**. Un cambio de banda programa un intento tras 15 segundos de estabilidad, respetando el intervalo mínimo. En la banda actual, el primer intento se programa para el final del intervalo. El intervalo configurable de 10 a 120 minutos se guarda localmente. Activá la publicación real solo mientras estés llamando CQ y cuando lo permitan el nodo y el concurso. **Detener** cancela los próximos intentos.
+DX Cluster muestra spots identificados como CW en la banda actual del log. Los comentarios sin modo identificado se omiten de esa tarjeta. Quiénes me escuchan muestra los reportes recientes de terceros sobre tu indicativo, en cualquier banda, con frecuencia, hora UTC y fuente. Las tarjetas son de solo lectura.
 
-Para recibir reportes, configurá en el servidor (o en el entorno del portable) `SACW_SPOT_CALL` con el indicativo de conexión a DXFun. `SACW_DXFUN_PASSWORD` es opcional y se usa si el nodo la solicita. `SACW_RBN_RELAY` admite el formato `host:puerto` de un clúster con spots de skimmers habilitados. El servicio conserva hasta una hora de spots en memoria desde su conexión. Mis spots muestra el tráfico observado desde tu indicativo, y Quiénes me escuchan muestra los reportes de terceros sobre tu indicativo.
-
-El reglamento SACW 2026 permite el self-spot. El envío usa el indicativo del log y la sesión de consulta QRZ que ya esté conectada con ese indicativo. Antes de activar, cada operador debe habilitar su indicativo en el nodo. El administrador del log registra los indicativos con habilitación confirmada. La web y el portable usan [G5GDX, dx1.g5gdx.com:7300](https://rustycluster.com/) para emitir y DXFun para recibir. Los anuncios confirmados se muestran en Mis spots. Las redes deciden si propagan el spot a otros nodos.
-
-Para otra instalación habilitá un nodo DXSpider que admita el auto spot con  `SACW_SPOT_NODE=host:puerto` y `SACW_SPOT_REGISTERED_CALLS` con los indicativos autorizados por el nodo separados por comas. La aplicación reutiliza la sesión QRZ de cada operador. Como alternativa, se pueden provisionar claves distintas por indicativo mediante `SACW_SPOT_KEYS` (objeto JSON, valores de al menos 24 caracteres). El servidor limita los intentos a uno cada 10 minutos por indicativo.
+Para recibir reportes, configurá `SACW_SPOT_CALL` en el servidor. `SACW_DXFUN_PASSWORD` se usa si el nodo la solicita. `SACW_RBN_RELAY` admite el formato `host:puerto` de una fuente de spots de skimmers. El portable usa el servicio publicado salvo que tenga un feed local configurado.
 
 Los FT-817/817ND, FT-818, FT-747GX, FT-757GX y FT-757GXII usan Hamlib en Windows. Instalá Hamlib, agregá `rigctl.exe` al PATH o configurá `SACW_RIGCTL` con su ruta. Abrí el portable o ejecutá `node serve.mjs` y abrí el log local en el navegador. En **Opciones**, elegí el modelo, el puerto COM y la velocidad CAT de la radio. El FTDX101MP y los perfiles Web Serial existentes se siguen seleccionando en el mismo menú. En los perfiles Hamlib se permite lectura y sintonía en CW, con PTT desactivado.
 
