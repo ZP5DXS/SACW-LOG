@@ -58,3 +58,18 @@ Object.assign(messages.pt,{
  CAT_FT817_TIMEOUT:'O FT-817 não respondeu. Verifique a porta COM, o cabo CAT em ACC e a velocidade do menu 14.',
  CAT_FT817_REJECTED:'O FT-817 não aplicou a alteração. Verifique se está em VFO com SPLIT desativado.'
 });
+
+Object.assign(messages.es,{
+ catWriteOnly:'CAT · solo sintonía',catManualRead:'CAT · última lectura',catRead:'Leer CAT',
+ ft757Hint:'FT-757GX: elegí el COM del cable CAT para EXT CNTL a 4800. El log muestra la frecuencia enviada. Confirmá la frecuencia y el modo en la radio.',
+ ft747Hint:'En el portable de Windows, elegí el COM del cable e instalá Hamlib. Usá Leer CAT entre contactos porque la lectura puede interrumpir CW.',
+ hamlibHint:'Hamlib es el controlador del cable CAT. Abrí el portable de Windows, instalá Hamlib y elegí el COM asignado al cable.',
+ CAT_LEGACY_BAUD:'Este modelo usa 4800 baudios.'
+});
+Object.assign(messages.pt,{
+ catWriteOnly:'CAT · somente sintonia',catManualRead:'CAT · última leitura',catRead:'Ler CAT',
+ ft757Hint:'FT-757GX: escolha a porta COM do cabo CAT para EXT CNTL a 4800. O log mostra a frequência enviada. Confirme a frequência e o modo no rádio.',
+ ft747Hint:'No portátil do Windows, selecione a porta COM do cabo e instale o Hamlib. Use Ler CAT entre contatos porque a leitura pode interromper CW.',
+ hamlibHint:'Hamlib é o controlador do cabo CAT. Abra o portátil do Windows, instale o Hamlib e selecione a porta COM atribuída ao cabo.',
+ CAT_LEGACY_BAUD:'Este modelo usa 4800 baud.'
+});

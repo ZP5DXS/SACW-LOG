@@ -9,7 +9,7 @@ export function createHamlibService(run=runRigctl){
  let busy=false;
  return async function hamlib({rig,port,baud,hz,mode}){
   const profile=Object.hasOwn(rigs,rig)?rigs[rig]:null;
-  if(!profile?.hamlib||typeof port!=='string'||!/^COM[1-9]\d{0,2}$/i.test(port)||!speeds.includes(baud))throw Error('CAT_HAMLIB_CONFIG');
+  if(!profile?.hamlib||typeof port!=='string'||!/^COM[1-9]\d{0,2}$/i.test(port)||!(profile?.baudRates||speeds).includes(baud))throw Error('CAT_HAMLIB_CONFIG');
   if(hz!==undefined&&(!Number.isInteger(hz)||hz<1800000||hz>54000000))throw Error('CAT_RANGE');
   if(mode!==undefined&&!['3','7'].includes(mode))throw Error('CAT_MODE');
   if(busy)throw Error('CAT_HAMLIB_BUSY');

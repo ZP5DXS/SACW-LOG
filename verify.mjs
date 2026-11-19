@@ -24,7 +24,7 @@ const document={body:{classList:classes()},documentElement:{},getElementById:ele
 const restoredContext={...context,document,window:null};restoredContext.window=restoredContext;vm.createContext(restoredContext);vm.runInContext(script,restoredContext);assert.equal(restoredContext.SACW.getSnapshot().logs.demo.length,1);assert.equal(restoredContext.SACW.getSnapshot().settings.mycall,'ZP5DXS');assert.equal(restoredContext.SACW.calculate().points,1);
 console.log('OK · SACW points/multipliers, dupes, period, categories, Cabrillo columns, ADIF, CAT allowlist, ES/PT, full HTML and Enter/persistence flow.');
 assert.equal(parseFrequency('7025'),7025000);assert.equal(parseFrequency('7.025'),7025000);assert.equal(parseFrequency('7.025.000'),7025000);assert.equal(parseFrequency('21025,1'),21025100);assert.equal(decodeBCD(encodeBCD(28025100)),28025100);
-for(const profile of Object.values(rigs).filter(profile=>!profile.hamlib&&profile.protocol!=='ft817')){const test=new SacwCAT();test.profile=profile;test.address=profile.address||0x94;const commands=[];test.writer={write:async bytes=>commands.push([...bytes])};await test.poll();if(profile.protocol==='icom'){test.parseCiv([0xfe,0xfe,0xe0,test.address,3,...encodeBCD(7025000),0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,4,3,1,0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,15,0,0xfd]);await assert.rejects(test.civ(0x1c,[0,1]));}else{test.parse(profile.protocol==='kenwood'?'FA00007025000':'FA007025000');test.parse(profile.protocol==='kenwood'?'MD3':'MD03');test.parse('FT0');if(profile.protocol==='kenwood')test.parse('FR0');await assert.rejects(test.send('TX1;'));}assert.equal(test.state.hz,7025000,profile.name);assert.equal(test.state.mode,'3',profile.name);assert.equal(test.state.split,false,profile.name);test.state.connected=true;await test.tune(21025000);assert(commands.length>=2);}
+for(const profile of Object.values(rigs).filter(profile=>!profile.hamlib&&!['ft817','ft757'].includes(profile.protocol))){const test=new SacwCAT();test.profile=profile;test.address=profile.address||0x94;const commands=[];test.writer={write:async bytes=>commands.push([...bytes])};await test.poll();if(profile.protocol==='icom'){test.parseCiv([0xfe,0xfe,0xe0,test.address,3,...encodeBCD(7025000),0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,4,3,1,0xfd]);test.parseCiv([0xfe,0xfe,0xe0,test.address,15,0,0xfd]);await assert.rejects(test.civ(0x1c,[0,1]));}else{test.parse(profile.protocol==='kenwood'?'FA00007025000':'FA007025000');test.parse(profile.protocol==='kenwood'?'MD3':'MD03');test.parse('FT0');if(profile.protocol==='kenwood')test.parse('FR0');await assert.rejects(test.send('TX1;'));}assert.equal(test.state.hz,7025000,profile.name);assert.equal(test.state.mode,'3',profile.name);assert.equal(test.state.split,false,profile.name);test.state.connected=true;await test.tune(21025000);assert(commands.length>=2);}
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length,'Duplicate HTML IDs');assert(!html.includes('name="facebook"'));assert(!html.includes('name="checklog"'));assert(!html.includes('id="entryHint"'));assert(!html.includes('id="stepHint"'));assert(html.includes('<span id="mode"'));
 vm.runInContext('state.workspace="demo";resetEntry();',restoredContext);element('call').value='PY2ZZ';element('call').event_keydown({key:'Enter',preventDefault(){}});assert.equal(document.activeElement.id,'exchange');element('exchange').event_keydown({key:'Enter',preventDefault(){}});assert.equal(document.activeElement.id,'frequency');element('frequency').value='21025';element('qsoForm').onsubmit({preventDefault(){}});let snapshot=restoredContext.SACW.getSnapshot();assert.equal(snapshot.logs.demo.at(-1).hz,21025000);assert.equal(snapshot.logs.demo.at(-1).band,'15');
 vm.runInContext('editQso(state.logs.demo.at(-1).id)',restoredContext);assert.equal(element('qsoEditor').open,true);element('editName').value='Updated name';element('editFreq').value='28025';element('editForm').onsubmit({preventDefault(){}});snapshot=restoredContext.SACW.getSnapshot();assert.equal(snapshot.logs.demo.at(-1).name,'Updated name');assert.equal(snapshot.logs.demo.at(-1).band,'10');assert.equal(element('qsoEditor').open,false);assert.equal(snapshot.logs.demo.length,2);
@@ -102,3 +102,15 @@ try{
 }
 assert(ft817Closed);
 console.log('OK · FT-817/817ND Web Serial, 8N2, fragmented replies, frequency and mode readback, no PTT.');
+
+assert.equal(rigs.ft818.protocol,rigs.ft817.protocol);
+assert.equal(rigs.ft747.manualRead,true);
+const gx=new SacwCAT(),gxFrames=[];
+gx.profile=rigs.ft757;
+gx.writer={write:async bytes=>gxFrames.push([...bytes])};
+gx.state.connected=true;
+assert.equal(await gx.tune(14250000),14250000);
+assert.deepEqual(gxFrames,[[0x00,0x50,0x42,0x01,0x0a]]);
+assert.equal(gx.state.hz,null);
+await assert.rejects(gx.mode('3'),/CAT_MODE/);
+console.log('OK · FT-818 shares the native driver and FT-757GX uses only the documented write command.');
