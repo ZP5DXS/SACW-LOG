@@ -7,7 +7,7 @@ export function createPublicServer({dataDir=process.env.SACW_DATA_DIR||fileURLTo
  function authorize(body,ip){if(!/^[-a-zA-Z0-9]{8,80}$/.test(body.clientId||'')||!/^[-a-f0-9]{64,128}$/i.test(body.clientProof||''))throw Error('ACCESS_DEVICE');const hash=createHash('sha256').update(body.clientProof).digest('hex'),old=auth.prepare('SELECT proof_hash FROM device_access WHERE client=?').get(body.clientId);if(old){if(!timingSafeEqual(Buffer.from(old.proof_hash,'hex'),Buffer.from(hash,'hex')))throw Error('ACCESS_DEVICE');}else{if(!permit('register:'+ip,30,600000))throw Error('RATE_LIMIT');auth.prepare('INSERT INTO device_access VALUES (?,?)').run(body.clientId,hash);}if(!permit('sync:'+body.clientId,60,60000))throw Error('RATE_LIMIT');}
  function sendBoard(peer){peer.res.write('data: '+JSON.stringify(store.board(peer.workspace,peer.band,peer.power))+'\n\n');}
  function publish(){for(const peer of clients)try{sendBoard(peer);}catch{clients.delete(peer);}}
- const spots=createSpotService({clock});
+ const spots=createSpotService({clock,verifiedStation:qrz.station});
  const server=http.createServer(async(req,res)=>{
   const origin=req.headers.origin||'',host=req.headers.host||'',ip=String(req.headers['cf-connecting-ip']||req.headers['x-real-ip']||req.socket.remoteAddress||'').slice(0,100);
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');
@@ -25,10 +25,10 @@ export function createPublicServer({dataDir=process.env.SACW_DATA_DIR||fileURLTo
    if(!(req.headers['content-type']||'').startsWith('application/json'))return reply(415,{error:'CONTENT_TYPE'});
    let raw='';
    for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(413,{error:'BODY_LIMIT'});}
-   const [code,data]=spots.send(JSON.parse(raw),req.headers.authorization);
+   const [code,data]=await spots.send(JSON.parse(raw),req.headers.authorization);
    return reply(code,data);
   }
-   if(name==='health')return reply(200,{app:'sacw-log-public',version:'2.1.0',storage:'sqlite'});
+   if(name==='health')return reply(200,{app:'sacw-log-public',version:'2.1.1',storage:'sqlite'});
    if(name==='api/live/events'&&req.method==='GET'){
     const workspace=url.searchParams.get('workspace')||'demo',band=url.searchParams.get('band')||'ALL',power=url.searchParams.get('power')||'LOW';if(!['official','demo','free'].includes(workspace)||!['ALL','80','40','15','10'].includes(band)||!['LOW','HIGH','QRP'].includes(power))throw Error('SYNC_VALIDATION');if(clients.size>=300)return reply(503,{error:'LIVE_BUSY'});
     res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no'});const peer={res,workspace,band,power};clients.add(peer);sendBoard(peer);res.on('close',()=>clients.delete(peer));return;

@@ -53,3 +53,30 @@ Object.assign(messages.pt,{
 
 Object.assign(messages.es,{cwspMember:'✓ Miembro CWSP en el padrón'});
 Object.assign(messages.pt,{cwspMember:'✓ Membro CWSP na lista'});
+
+Object.assign(messages.es,{
+ spotRegister:'Registro Telnet en RustyCluster ↗',
+ spotLogin:'Usá el indicativo del log. Conectá QRZ en Opciones y habilitá ese indicativo para publicar en el nodo.',
+ spotPermission:'Conectá QRZ con el indicativo del log o ingresá tu clave de publicación. Confirmá el permiso en el nodo.',
+ spotConfirmed:'El nodo confirmó el spot.',
+ SPOT_ACCESS:'La sesión de QRZ o la clave no corresponde al indicativo del log.',
+ SPOT_REGISTRATION:'El nodo requiere habilitar el indicativo para publicar.',
+ SPOT_OFFLINE:'El nodo no respondió. Auto spot detenido.',
+ SPOT_UNCONFIRMED:'El nodo no confirmó el spot. Revisá Mis spots antes de reintentar.',
+ SPOT_INTERVAL:'Ya hubo un intento reciente para este indicativo.',
+ SPOT_BUSY:'El nodo está ocupado. Volvé a activar en unos segundos.',
+ SPOT_DISABLED:'La publicación no está habilitada.'
+});
+Object.assign(messages.pt,{
+ spotRegister:'Registro Telnet no RustyCluster ↗',
+ spotLogin:'Use o indicativo do log. Conecte o QRZ em Opções e habilite o indicativo para publicar no nó.',
+ spotPermission:'Conecte o QRZ com o indicativo do log ou informe a chave de publicação. Confirme a permissão no nó.',
+ spotConfirmed:'O nó confirmou o spot.',
+ SPOT_ACCESS:'A sessão do QRZ ou a chave não corresponde ao indicativo do log.',
+ SPOT_REGISTRATION:'O nó exige habilitação do indicativo para publicar.',
+ SPOT_OFFLINE:'O nó não respondeu. Auto spot interrompido.',
+ SPOT_UNCONFIRMED:'O nó não confirmou o spot. Confira Meus spots antes de tentar novamente.',
+ SPOT_INTERVAL:'Houve uma tentativa recente para este indicativo.',
+ SPOT_BUSY:'O nó está ocupado. Ative novamente em alguns segundos.',
+ SPOT_DISABLED:'A publicação está desabilitada.'
+});

@@ -14,7 +14,7 @@
     <label><span data-i="spotInterval">Intervalo (minutos)</span><input id="spotMinutes" type="number" min="10" max="120" value="15"></label>
    </div>
    <div id="spotLiveFields" hidden>
-    <label><span data-i="spotToken">Clave de publicación</span><input id="spotToken" type="password" autocomplete="off"></label>
+    <p class="muted" data-i="spotLogin"></p><a id="spotNodeRegistration" class="muted" href="https://rustycluster.com/" target="_blank" rel="noopener" data-i="spotRegister" hidden></a><label id="spotCodeLabel" hidden><span data-i="spotToken">Clave de publicación</span><input id="spotToken" type="password" autocomplete="off"></label>
     <label class="check"><input id="spotPolicy" type="checkbox"><span data-i="spotConsent">El nodo y el concurso permiten el auto spot. Activar solo mientras estoy llamando CQ.</span></label>
    </div>
    <div class="spot-actions"><button type="button" id="spotToggle" data-i="spotStart">Activar</button><span id="spotStatus"></span></div>

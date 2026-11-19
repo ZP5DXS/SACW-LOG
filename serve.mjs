@@ -2,7 +2,7 @@ import {createHamlibService} from './hamlib-service.js';
 import {createSpotService} from './spot-service.js';
 import http from 'node:http';import {readFile} from 'node:fs/promises';import {fileURLToPath} from 'node:url';import {createQRZService} from './qrz-service.js';
 const port=Number(process.env.SACW_PORT||8791),types={html:'text/html; charset=utf-8',js:'text/javascript',css:'text/css',svg:'image/svg+xml',webmanifest:'application/manifest+json'},qrz=createQRZService();
-export function createServer(){const spots=createSpotService(),hamlib=createHamlibService();const server=http.createServer(async(req,res)=>{
+export function createServer(){const spots=createSpotService({verifiedStation:qrz.station}),hamlib=createHamlibService();const server=http.createServer(async(req,res)=>{
  const reply=(code,data)=>res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}).end(JSON.stringify(data));
  try{
   const host=req.headers.host||'';if(!/^(?:127\.0\.0\.1|localhost):\d+$/.test(host))return reply(403,{error:'HOST'});
@@ -24,21 +24,35 @@ export function createServer(){const spots=createSpotService(),hamlib=createHaml
      if(!(req.headers['content-type']||'').startsWith('application/json'))return reply(415,{error:'CONTENT_TYPE'});
      for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(413,{error:'BODY_LIMIT'});}
     }
+    if(req.method==='POST'){
+     const body=JSON.parse(raw);
+     if(spots.publishing(body.call)&&spots.authorized(body.call,req.headers.authorization)){
+      const [code,data]=await spots.send(body,req.headers.authorization);
+      return reply(code,data);
+     }
+    }
     const upstream=new URL('api/spots'+url.search,process.env.SACW_LIVE_UPSTREAM.replace(/\/?$/,'/'));
     try{
      const remote=await fetch(upstream,{method:req.method,headers:req.method==='POST'?{'Content-Type':'application/json',Authorization:req.headers.authorization||''}:{},body:req.method==='POST'?raw:undefined,signal:AbortSignal.timeout(7000)});
-     return reply(remote.status,await remote.json());
-    }catch{return reply(503,{error:'SPOT_OFFLINE'});}
+     const data=await remote.json();
+     if(req.method==='GET'&&remote.ok){
+      const publishing=data.publishing||spots.publishing(url.searchParams.get('call'));
+      return reply(remote.status,{...data,publishing});
+     }
+     return reply(remote.status,data);
+    }catch{
+     return req.method==='GET'?reply(200,spots.list(url.searchParams.get('call'))):reply(503,{error:'SPOT_OFFLINE'});
+    }
    }
    if(req.method==='GET')return reply(200,spots.list(url.searchParams.get('call')));
    if(req.method!=='POST')return reply(405,{error:'METHOD'});
    if(!(req.headers['content-type']||'').startsWith('application/json'))return reply(415,{error:'CONTENT_TYPE'});
    let raw='';
    for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(413,{error:'BODY_LIMIT'});}
-   const [code,data]=spots.send(JSON.parse(raw),req.headers.authorization);
+   const [code,data]=await spots.send(JSON.parse(raw),req.headers.authorization);
    return reply(code,data);
   }
-  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.0',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
+  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.1',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
   if(name==='api/sync'||name==='api/live/events'){
    const upstream=new URL(url.pathname.replace(/^\/+/,'')+url.search,(process.env.SACW_LIVE_UPSTREAM||'http://127.0.0.1:18791/').replace(/\/?$/,'/'));
    if(name==='api/live/events'){const controller=new AbortController();res.on('close',()=>controller.abort());const remote=await fetch(upstream,{signal:controller.signal});if(!remote.ok)return reply(503,{error:'LIVE_OFFLINE'});res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','X-Accel-Buffering':'no'});try{for await(const chunk of remote.body)res.write(chunk);}catch{}res.end();return;}

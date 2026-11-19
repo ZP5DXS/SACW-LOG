@@ -7,6 +7,8 @@ function renderSpotReports(){
  const data=spotReportCall===call?reports:{sent:[],received:[],feeds:[]};
  $('spotPublisher').textContent=data.publishing?.node||t('spotUnavailable');
  $('spotLiveFields').hidden=!data.publishing;
+ $('spotCodeLabel').hidden=!data.publishing?.accessCode;
+ $('spotNodeRegistration').hidden=data.publishing?.node!=='dx1.g5gdx.com:7300';
  $('spotToggle').disabled=!spotArmed&&!data.publishing?.ready;
  if(!data.publishing&&spotArmed)setSpotArmed(false);
  $('spotFeeds').textContent=['DXFun','RBN'].map(source=>source+' '+(data.feeds.find(feed=>feed.source===source)?.ready?'✓':'—')).join(' · ');
@@ -50,11 +52,11 @@ function updateAutoSpot(){
  spotBusy=true;
  lastSpotAttempt=now;
  spotDue=now+spotInterval();
- void requestJSON(appAPI('api/spots'),$('spotToken').value.trim(),{method:'POST',body:{call,hz}}).then(()=>{
-  $('spotResult').textContent=t('spotQueued');
+ void requestJSON(appAPI('api/spots'),spotAuthorization(),{method:'POST',body:{call,hz}}).then(result=>{
+  $('spotResult').textContent=t(result.confirmed?'spotConfirmed':'spotQueued');
   void refreshSpotReports();
- }).catch(()=>{
-  $('spotResult').textContent=t('spotError');
+ }).catch(error=>{
+  $('spotResult').textContent=t(error.message.startsWith('SPOT_')?error.message:'spotError');
   setSpotArmed(false);
  }).finally(()=>{spotBusy=false;});
 }
@@ -68,13 +70,17 @@ function setSpotArmed(armed){
  $('spotStatus').textContent=armed?t('spotWaiting'):'';
 }
 
+function spotAuthorization(){
+ const code=reports.publishing?.accessCode&&$('spotToken').value.trim();
+ return code||(String(state.settings.qrzUser).toUpperCase()===spotArmedCall||String(state.settings.qrzUser).toUpperCase()===state.settings.mycall?qrzLookupSession:'');
+}
 function setupSpots(){
  try{const saved=localStorage.getItem('sacw-spot-minutes');if(saved)$('spotMinutes').value=saved;}catch{}
  setSpotArmed(false);
  $('spotToggle').onclick=()=>{
   if(spotArmed){setSpotArmed(false);return;}
   if(!validCall(state.settings.mycall)){toast(t('validCall'));return;}
-  if(!reports.publishing?.ready||spotReportCall!==state.settings.mycall||!$('spotToken').value.trim()||!$('spotPolicy').checked){
+  if(!reports.publishing?.ready||spotReportCall!==state.settings.mycall||!spotAuthorization()||!$('spotPolicy').checked){
    toast(t('spotPermission'));
    return;
   }

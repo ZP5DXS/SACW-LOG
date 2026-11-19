@@ -1,4 +1,4 @@
-name: Publicar SACW LOG 2.1.0
+name: Publicar SACW LOG
 on:
   push:
     branches: [main]
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-concurrency: sacw-release-v2.1.0
+concurrency: sacw-release-main
 jobs:
   release:
     if: github.ref == 'refs/heads/main'
@@ -17,10 +17,11 @@ jobs:
         with:
           node-version: '24'
       - name: Compilar el portable de Windows
+        id: portable
         shell: pwsh
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          if ($version -ne '2.1.0') { throw 'Este flujo solo publica la versión 2.1.0.' }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Versión de release inválida.' }
           npm install --prefix "$env:RUNNER_TEMP/sacw-tools" --no-audit --no-fund postject@1.0.0-alpha.6
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           $env:SACW_POSTJECT = "$env:RUNNER_TEMP/sacw-tools/node_modules/postject/dist/cli.js"
@@ -30,16 +31,25 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           node desktop/build-portable.mjs
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          Copy-Item desktop/build/SACW-LOG-Portable.exe SACW-LOG-Portable-2.1.0.exe
+          $asset = "SACW-LOG-Portable-$version.exe"
+          Copy-Item desktop/build/SACW-LOG-Portable.exe $asset
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "asset=$asset" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       - name: Publicar el ejecutable en GitHub Releases
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          SACW_RELEASE_VERSION: ${{ steps.portable.outputs.version }}
+          SACW_RELEASE_ASSET: ${{ steps.portable.outputs.asset }}
         run: |
-          gh release view v2.1.0 *> $null
+          $tag = "v$env:SACW_RELEASE_VERSION"
+          gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload v2.1.0 SACW-LOG-Portable-2.1.0.exe
+            $assets = gh release view $tag --json assets --jq '.assets[].name'
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            if ($assets -contains $env:SACW_RELEASE_ASSET) { exit 0 }
+            gh release upload $tag $env:SACW_RELEASE_ASSET
           } else {
-            gh release create v2.1.0 SACW-LOG-Portable-2.1.0.exe --target "$env:GITHUB_SHA" --title "SACW LOG 2.1.0" --notes "Auto spot con nodo autorizado, tarjetas DX Cluster y RBN, libro compacto y cinco perfiles Yaesu mediante Hamlib."
+            gh release create $tag $env:SACW_RELEASE_ASSET --target "$env:GITHUB_SHA" --title "SACW LOG $env:SACW_RELEASE_VERSION" --notes "Portable Windows de SACW LOG. Consultá el README para instalación, CAT y DX Cluster."
           }
           exit $LASTEXITCODE
