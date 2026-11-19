@@ -1,6 +1,6 @@
 import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';import {join} from 'node:path';
 const root=fileURLToPath(new URL('../',import.meta.url)),build=join(root,'desktop','build');await mkdir(build,{recursive:true});
-const assets={};for(const name of ['index.html','sw.js','manifest.webmanifest','icon.svg','serve.mjs','qrz-service.js','lookup.js','connectors.js','package.json','CTY-COPYRIGHT.txt','THIRD-PARTY-NODE-LICENSE.txt'])assets[name]=join(root,name);
+const assets={};for(const name of ['index.html','sw.js','manifest.webmanifest','icon.svg','serve.mjs','spot-service.js','hamlib-service.js','cat.js','radios.js','qrz-service.js','lookup.js','connectors.js','package.json','CTY-COPYRIGHT.txt','THIRD-PARTY-NODE-LICENSE.txt'])assets[name]=join(root,name);
 const config={main:join(root,'desktop','entry.cjs'),output:join(build,'sea.blob'),disableExperimentalSEAWarning:true,useSnapshot:false,useCodeCache:false,assets};await writeFile(join(build,'sea.json'),JSON.stringify(config));
 const prepare=spawnSync(process.execPath,['--experimental-sea-config',join(build,'sea.json')],{encoding:'utf8'});if(prepare.status)throw Error(prepare.stderr);
 const executable=join(build,'SACW-LOG-Portable.exe');await copyFile(process.execPath,executable);

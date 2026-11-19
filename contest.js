@@ -1,12 +1,31 @@
 export const profiles={
  free:{name:'Libre',exchange:'Dato opcional',zone:null},
  cqww:{name:'CQ WW CW 2026',exchange:'Zona CQ',zone:'cqzone',id:'CQ-WW-CW',bands:['160','80','40','20','15','10'],start:'2026-11-28T00:00:00Z',end:'2026-11-30T00:00:00Z',cq:'CQ TEST DE $mycall$ $mycall$ K',autoReply:false},
- sacw:{name:'SACW 2026 · Sudamérica',exchange:'ITU / M / QRP / YL',zone:'ituzone',id:'SACW',bands:['80','40','15','10'],start:'2026-11-21T18:00:00Z',end:'2026-11-22T21:00:00Z',cq:'CQ SACW TEST DE $mycall$ $mycall$ K',autoReply:false},
- itu:{name:'Intercambio ITU',exchange:'Zona ITU',zone:'ituzone'},serial:{name:'Intercambio correlativo',exchange:'Número recibido',zone:null},unscored:{name:'Concurso personalizado',exchange:'Intercambio',zone:null},custom:{name:'Práctica ITU',exchange:'Zona ITU',zone:'ituzone'}
+ sacw:{name:'SACW 2026 Â· SudamÃ©rica',exchange:'ITU / M / QRP / YL',zone:'ituzone',id:'SACW',bands:['80','40','15','10'],start:'2026-11-21T18:00:00Z',end:'2026-11-22T21:00:00Z',cq:'CQ SACW TEST DE $mycall$ $mycall$ K',autoReply:false},
+ itu:{name:'Intercambio ITU',exchange:'Zona ITU',zone:'ituzone'},serial:{name:'Intercambio correlativo',exchange:'NÃºmero recibido',zone:null},unscored:{name:'Concurso personalizado',exchange:'Intercambio',zone:null},custom:{name:'PrÃ¡ctica ITU',exchange:'Zona ITU',zone:'ituzone'}
 };
 export function nextSerial(rows){return Math.max(0,...rows.map(q=>q.serial||0))+1;}
 export function validCall(call){return /^[A-Z0-9/]{3,20}$/.test(call)&&/[A-Z]/.test(call)&&/[0-9]/.test(call);}
-export function validateExchange(profile,value){value=String(value).trim().toUpperCase();if(profile==='sacw'&&['M','QRP','YL'].includes(value))return true;if(profile==='cqww')return /^\d{1,2}$/.test(value)&&+value>=1&&+value<=40;if(['itu','custom','sacw'].includes(profile))return /^\d{1,2}$/.test(value)&&+value>=1&&+value<=90;if(profile==='serial')return /^\d{1,6}$/.test(value)&&+value>0;return profile==='free'||!!value;}
+// CWSP SACW 2026, Annex 1. Keys use CTY.DAT entity IDs to distinguish the VP8 islands,
+// Malpelo and the St. Peter & St. Paul Rocks.
+export const sacwEntityZones = Object.freeze({
+ '8R':[12],'9Y':[11],CE:[14,16],CE0X:[14],CE0Y:[63],CE0Z:[14],CP:[12,14],
+ CX:[14],FY:[12],HC:[12],HC8:[12],HK:[12],'HK0/M':[12],LU:[14,16],OA:[12],
+ P4:[11],PJ2:[11],PJ4:[11],PY:[12,13,15],PY0F:[13],PY0S:[13],PY0T:[15],
+ PZ:[12],VP8:[16],'VP8/G':[73],'VP8/O':[73],'VP8/S':[73],'VP8/H':[73],YV:[12],ZP:[14]
+});
+function sacwExchange(value){
+ const exchange=String(value||'').trim().toUpperCase();
+ return exchange==='/M'?'M':exchange;
+}
+function sacwEntity(value){return String(value||'').trim().toUpperCase();}
+export function sacwSuggestedZone(entity,estimate){
+ const zones=Object.hasOwn(sacwEntityZones,sacwEntity(entity))?sacwEntityZones[sacwEntity(entity)]:null;
+ if(!zones)return null;
+ return zones.length===1?zones[0]:zones.includes(+estimate)?+estimate:null;
+}
+
+export function validateExchange(profile,value){value=profile==='sacw'?sacwExchange(value):String(value).trim().toUpperCase();if(profile==='sacw'&&['M','QRP','YL'].includes(value))return true;if(profile==='cqww')return /^\d{1,2}$/.test(value)&&+value>=1&&+value<=40;if(['itu','custom','sacw'].includes(profile))return /^\d{1,2}$/.test(value)&&+value>=1&&+value<=90;if(profile==='serial')return /^\d{1,6}$/.test(value)&&+value>0;return profile==='free'||!!value;}
 export function contestDefaults(profile){const p=profiles[profile]||profiles.free;return {profile,exchange:'',contestId:p.id||'',start:p.start||'',end:p.end||'',categoryBand:'ALL',categoryPower:'LOW',declaredPower:100,sacwMessage:'ITU',checklog:false,scoreMode:'auto'};}
 export function ownExchange(settings,session,home={}){if(session.profile==='sacw'){if(session.categoryPower==='QRP')return 'QRP';if(['M','YL','QRP'].includes(session.sacwMessage))return session.sacwMessage;return String(settings.myitu||home.ituzone||'');}if(session.exchange)return session.exchange;if(session.profile==='cqww')return String(settings.mycqz||home.cqzone||'');if(['itu','custom'].includes(session.profile))return String(settings.myitu||home.ituzone||'');if(session.profile==='serial')return String(nextSerial(session.rows||[])).padStart(3,'0');return '';}
 export function wpxPrefix(call){
@@ -18,20 +37,22 @@ export function scoreLog(rows,profile,home={},session={},options={}){
  const p=profiles[profile]||profiles.free,seen=new Set(),countries=new Set(),zones=new Set(),prefixes=new Set();let points=0,pending=0;
  const native=['cqww','sacw'].includes(profile),start=session.start||p.start,end=session.end||p.end;
  const annotated=rows.map(q=>{
-  const key=q.call.toUpperCase()+':'+q.band,time=Date.parse(q.time);let reason='';
-  if(p.bands&&!p.bands.includes(q.band))reason='Banda no válida';
-  else if(!validateExchange(profile,q.exchange||''))reason='Intercambio inválido';
-  else if(native&&start&&!options.ignorePeriod&&(time<Date.parse(start)||time>=Date.parse(end)))reason='Fuera de período';
-  else if(session.categoryBand&&session.categoryBand!=='ALL'&&q.band!==session.categoryBand)reason='Otra banda: checklog';
-  else if(profile==='sacw'&&((home.continent&&home.continent!=='SA')||(q.continent&&q.continent!=='SA')||/\/(?:MM|AM)$/.test(q.call)))reason='Fuera de Sudamérica';
-  const dupe=!reason&&seen.has(key);if(dupe)reason='Duplicado';const valid=!reason;let qpoints=0,unresolved=false;
+  const key=q.call.toUpperCase()+':'+q.band,time=Date.parse(q.time);
   const entity=q.entity||q.dxcc,own=home.entity||home.dxcc;
+  const sacwDXCC=sacwEntity(entity),sacwHome=sacwEntity(own);
+  let reason='';
+  if(p.bands&&!p.bands.includes(q.band))reason='Banda no vÃ¡lida';
+  else if(!validateExchange(profile,q.exchange||''))reason='Intercambio invÃ¡lido';
+  else if(native&&start&&!options.ignorePeriod&&(time<Date.parse(start)||time>=Date.parse(end)))reason='Fuera de perÃ­odo';
+  else if(session.categoryBand&&session.categoryBand!=='ALL'&&q.band!==session.categoryBand)reason='Otra banda: checklog';
+  else if(profile==='sacw'&&((sacwHome?!Object.hasOwn(sacwEntityZones,sacwHome):home.continent&&home.continent!=='SA')||(sacwDXCC?!Object.hasOwn(sacwEntityZones,sacwDXCC):q.continent&&q.continent!=='SA')||/\/(?:MM|AM)$/.test(q.call)))reason='Fuera de SudamÃ©rica';
+  const dupe=!reason&&seen.has(key);if(dupe)reason='Duplicado';const valid=!reason;let qpoints=0,unresolved=false;
   if(valid&&profile==='cqww'){
    unresolved=!entity||!own||!q.continent||!home.continent;
    if(!unresolved){qpoints=entity===own?0:q.continent!==home.continent?3:q.continent==='NA'?2:1;if(!q.call.endsWith('/MM'))countries.add(q.band+':'+entity);zones.add(q.band+':'+Number(q.exchange));}
   }else if(valid&&profile==='sacw'){
-   const prefix=wpxPrefix(q.call),msg=q.exchange.trim().toUpperCase();unresolved=!entity||q.continent!=='SA'||home.continent!=='SA'||!prefix||(!['M','QRP','YL'].includes(msg)&&!home.ituzone);
-   if(!unresolved){qpoints=msg==='M'?5:['QRP','YL'].includes(msg)?3:+msg===+home.ituzone?1:2;countries.add(q.band+':'+entity);prefixes.add(q.band+':'+prefix);}
+   const prefix=wpxPrefix(q.call),msg=sacwExchange(q.exchange);unresolved=!sacwDXCC||!sacwHome||!prefix||(!['M','QRP','YL'].includes(msg)&&!home.ituzone);
+   if(!unresolved){qpoints=msg==='M'?5:['QRP','YL'].includes(msg)?3:+msg===+home.ituzone?1:2;countries.add(q.band+':'+sacwDXCC);prefixes.add(q.band+':'+prefix);}
   }else if(valid&&profile==='custom'){qpoints=1;zones.add(q.band+':'+Number(q.exchange));}
   if(valid){if(unresolved)pending++;else{seen.add(key);points+=qpoints;}}
   return {...q,dupe,valid,points:qpoints,unresolved,reason};
@@ -52,11 +73,11 @@ export function scoreSummary(rows,profile,home={},session={},now=Date.now()){
 }
 const clean=v=>String(v??'').replace(/[\r\n]/g,' ').trim();
 const ascii=v=>clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'');
-export function sacwQso(q,mycall){const d=new Date(q.time).toISOString();return 'QSO:'+String(Math.round(q.hz/1000)).padStart(5)+' CW '+d.slice(0,10)+' '+d.slice(11,16).replace(':','')+' '+clean(mycall).padEnd(13)+clean(q.sent).padEnd(4)+clean(q.txExchange).padEnd(4)+clean(q.call).padEnd(13)+clean(q.received).padEnd(4)+clean(q.exchange);}
+export function sacwQso(q,mycall){const d=new Date(q.time).toISOString();return 'QSO:'+String(Math.round(q.hz/1000)).padStart(5)+' CW '+d.slice(0,10)+' '+d.slice(11,16).replace(':','')+' '+clean(mycall).padEnd(13)+clean(q.sent).padEnd(4)+sacwExchange(q.txExchange).padEnd(4)+clean(q.call).padEnd(13)+clean(q.received).padEnd(4)+sacwExchange(q.exchange);}
 export function exportCabrillo(rows,settings,session){
- const p=profiles[session.profile]||profiles.unscored;if(session.profile==='free')throw Error('Elegí un concurso para exportar Cabrillo.');const id=p.id||clean(session.contestId);if(!id)throw Error('Completá el identificador Cabrillo.');if(!validCall(settings.mycall))throw Error('Configurá tu indicativo.');
- const power=session.categoryPower||(Number(settings.mypower)<=5?'QRP':Number(settings.mypower)<=100?'LOW':'HIGH'),watts=Number(session.declaredPower??settings.mypower);if(['sacw','cqww'].includes(session.profile)&&(!Number.isFinite(watts)||watts<=0||watts>1500))throw Error('Indicá una potencia declarada mayor que 0 y hasta 1500 W.');if(power==='QRP'&&watts>5)throw Error('La categoría QRP admite hasta 5 W declarados.');if(power==='LOW'&&watts>100)throw Error('LOW admite hasta 100 W declarados.');
- if(session.profile==='sacw'){if(!ascii(settings.myname)||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email||''))throw Error('SACW requiere nombre y email en Ajustes.');if(!(+settings.myitu>=1&&+settings.myitu<=90))throw Error('SACW requiere tu zona ITU para X-ZONE.');for(const q of rows)if(!validateExchange('sacw',q.exchange)||!validateExchange('sacw',q.txExchange))throw Error('Revisá los mensajes SACW enviados y recibidos.');}
+ const p=profiles[session.profile]||profiles.unscored;if(session.profile==='free')throw Error('ElegÃ­ un concurso para exportar Cabrillo.');const id=p.id||clean(session.contestId);if(!id)throw Error('CompletÃ¡ el identificador Cabrillo.');if(!validCall(settings.mycall))throw Error('ConfigurÃ¡ tu indicativo.');
+ const power=session.categoryPower||(Number(settings.mypower)<=5?'QRP':Number(settings.mypower)<=100?'LOW':'HIGH'),watts=Number(session.declaredPower??settings.mypower);if(['sacw','cqww'].includes(session.profile)&&(!Number.isFinite(watts)||watts<=0||watts>1500))throw Error('IndicÃ¡ una potencia declarada mayor que 0 y hasta 1500 W.');if(power==='QRP'&&watts>5)throw Error('La categorÃ­a QRP admite hasta 5 W declarados.');if(power==='LOW'&&watts>100)throw Error('LOW admite hasta 100 W declarados.');
+ if(session.profile==='sacw'){if(!ascii(settings.myname)||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.email||''))throw Error('SACW requiere nombre y email en Ajustes.');if(!(+settings.myitu>=1&&+settings.myitu<=90))throw Error('SACW requiere tu zona ITU para X-ZONE.');for(const q of rows)if(!validateExchange('sacw',q.exchange)||!validateExchange('sacw',q.txExchange))throw Error('RevisÃ¡ los mensajes SACW enviados y recibidos.');}
  const lines=['START-OF-LOG: 3.0','CALLSIGN: '+clean(settings.mycall),'CONTEST: '+id,'CATEGORY-BAND: '+(session.categoryBand||'ALL'),'CATEGORY-POWER: '+power,'CATEGORY-OPERATOR: '+(session.checklog?'CHECKLOG':'SINGLE-OP')];
  if(session.profile==='sacw')lines.push('X-ZONE: '+settings.myitu,'NAME: '+ascii(settings.myname),'EMAIL: '+clean(settings.email));
  else lines.push('CATEGORY-ASSISTED: ASSISTED','CATEGORY-MODE: CW','CATEGORY-TRANSMITTER: ONE');

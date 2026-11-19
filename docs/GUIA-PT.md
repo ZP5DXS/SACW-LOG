@@ -10,7 +10,7 @@
 
 RST começa em 599 e pode ser alterado. Clique em um contato salvo para editar. O log é salvo no navegador e pode funcionar sem Internet depois da primeira carga. Faça cópias em Opções → Configuração e dados. Web, portátil e outros navegadores têm armazenamentos separados.
 
-SACW 2026: **21/11 às 18:00 UTC até 22/11 às 21:00 UTC**, CW em 80/40/15/10 m. O modo oficial é habilitado uma hora antes. O score aplica as regras do concurso, mas permanece provisório e sujeito à revisão oficial.
+SACW 2026: **21/11 às 18:00 UTC até 22/11 às 21:00 UTC**, CW em 80/40/15/10 m. O modo oficial é habilitado no início. O score aplica as regras do concurso, mas permanece provisório e sujeito à revisão oficial.
 
 Estatísticas compartilhadas podem ser desligadas nas Opções. O carrossel mostra os top 3 por categoria; clique para ver o ranking completo. TESTE, LIVRE e concurso não misturam resultados.
 

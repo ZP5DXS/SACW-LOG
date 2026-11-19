@@ -28,7 +28,7 @@ Los datos guardados en la web, en el portable o en otro navegador **no se compar
 |---|---|
 | SACW PRUEBA | Practicar intercambio, puntaje y estadísticas antes del evento. No sube contactos a QRZ. |
 | LIBRE | Registrar contactos CW generales, sin score de concurso. |
-| SACW 2026 | Concurso real; se habilita una hora antes del inicio. |
+| SACW 2026 | Concurso real; se habilita al inicio del inicio. |
 
 SACW 2026 comienza el **21 de noviembre a las 18:00 UTC** y termina el **22 de noviembre a las 21:00 UTC**. El reloj muestra días, horas, minutos y segundos; durante el evento cambia a **ON AIR** y cuenta hasta el final. Mantené sincronizada la hora de tu computadora.
 
@@ -76,3 +76,17 @@ Problemas o sugerencias: **[Issues](https://github.com/ZP5DXS/SACW-LOG/issues)**
 Aplicación independiente, sin afiliación oficial a QRZ o al comité SACW. Datos de prefijos: [Country Files](https://www.country-files.com/), con aviso en [CTY-COPYRIGHT.txt](CTY-COPYRIGHT.txt).
 
 Para ejecutar o actualizar una instalación propia: [guía técnica](docs/DEPLOY.md).
+
+## DXFun, RBN y CAT Yaesu por Hamlib
+
+El auto spot se puede activar y detener en Prueba, Libre y Concurso. Con un indicativo habilitado y el nodo conectado, pulsá **Activar** en **Mis spots**. Un cambio de banda programa un intento tras 15 segundos de estabilidad, respetando el intervalo mínimo. En la banda actual, el primer intento se programa para el final del intervalo. El intervalo configurable de 10 a 120 minutos se guarda localmente. Activá la publicación real solo mientras estés llamando CQ y cuando lo permitan el nodo y el concurso. **Detener** cancela los próximos intentos.
+
+Para recibir reportes, configurá en el servidor (o en el entorno del portable) `SACW_SPOT_CALL` con el indicativo de conexión a DXFun. `SACW_DXFUN_PASSWORD` es opcional y se usa si el nodo la solicita. `SACW_RBN_RELAY` admite el formato `host:puerto` de un clúster con spots de skimmers habilitados. El servicio conserva hasta una hora de spots en memoria desde su conexión. Mis spots muestra el tráfico observado desde tu indicativo, y Quiénes me escuchan muestra los reportes de terceros sobre tu indicativo.
+
+El reglamento SACW 2026 permite el self-spot. DXFun prohíbe los autoanuncios desde la web y se usa para recepción. Para publicar, configurá `SACW_SPOT_NODE` con el `host:puerto` de un nodo que haya autorizado el auto spot para tu indicativo, `SACW_SPOT_NODE_AUTHORIZED=1` y `SACW_SPOT_TOKEN` de al menos 24 bytes. Si el nodo pide contraseña, configurá `SACW_SPOT_NODE_PASSWORD` en el servidor. El servidor aplica un mínimo de 10 minutos entre intentos y solo acepta el indicativo configurado. Introducí la clave en el panel y confirmá el permiso antes de activar. El panel registra el spot cuando se ve en el feed. La página estática necesita el backend actualizado para spots en vivo.
+
+Los FT-817/817ND, FT-818, FT-747GX, FT-757GX y FT-757GXII usan Hamlib en Windows. Instalá Hamlib, agregá `rigctl.exe` al PATH o configurá `SACW_RIGCTL` con su ruta. Abrí el portable o ejecutá `node serve.mjs` y abrí el log local en el navegador. En **Opciones**, elegí el modelo, el puerto COM y la velocidad CAT de la radio. El FTDX101MP y los perfiles Web Serial existentes se siguen seleccionando en el mismo menú. En los perfiles Hamlib se permite lectura y sintonía en CW, con PTT desactivado.
+
+La marca CWSP aparece para un intercambio M o /M si el indicativo figura en el [padrón oficial](https://portal.cwsp.com.br/2021/01/listmember/). Se incluye una copia de los indicativos consultada el 19 de noviembre de 2026. La marca es informativa y el intercambio conserva su puntuación aun cuando el indicativo no figure en esa copia.
+
+Para puntuar las entidades se usa el [Anexo 1 del reglamento SACW 2026](https://sacw.cwsp.com.br/es/2021/09/18/reglas-es/), con los identificadores DXCC de CTY.DAT. Los multiplicadores VP8 se distinguen por entidad. La zona para el cálculo de puntos sigue siendo el intercambio recibido.
