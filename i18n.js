@@ -56,6 +56,7 @@ Object.assign(messages.pt,{cwspMember:'✓ Membro CWSP na lista'});
 
 Object.assign(messages.es,{
  spotRegister:'Registro Telnet en RustyCluster ↗',
+ spotRegistrationPending:'Auto spot pendiente de habilitación para este indicativo.',
  spotLogin:'Usá el indicativo del log. Conectá QRZ en Opciones y habilitá ese indicativo para publicar en el nodo.',
  spotPermission:'Conectá QRZ con el indicativo del log o ingresá tu clave de publicación. Confirmá el permiso en el nodo.',
  spotConfirmed:'El nodo confirmó el spot.',
@@ -69,6 +70,7 @@ Object.assign(messages.es,{
 });
 Object.assign(messages.pt,{
  spotRegister:'Registro Telnet no RustyCluster ↗',
+ spotRegistrationPending:'Auto spot pendente de habilitação para este indicativo.',
  spotLogin:'Use o indicativo do log. Conecte o QRZ em Opções e habilite o indicativo para publicar no nó.',
  spotPermission:'Conecte o QRZ com o indicativo do log ou informe a chave de publicação. Confirme a permissão no nó.',
  spotConfirmed:'O nó confirmou o spot.',

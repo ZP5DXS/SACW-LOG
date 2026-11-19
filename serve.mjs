@@ -24,14 +24,24 @@ export function createServer(){const spots=createSpotService({verifiedStation:qr
      if(!(req.headers['content-type']||'').startsWith('application/json'))return reply(415,{error:'CONTENT_TYPE'});
      for await(const chunk of req){raw+=chunk;if(raw.length>2048)return reply(413,{error:'BODY_LIMIT'});}
     }
+    const upstream=new URL('api/spots'+url.search,process.env.SACW_LIVE_UPSTREAM.replace(/\/?$/,'/'));
     if(req.method==='POST'){
-     const body=JSON.parse(raw);
-     if(spots.publishing(body.call)&&spots.authorized(body.call,req.headers.authorization)){
-      const [code,data]=await spots.send(body,req.headers.authorization);
+     const body=JSON.parse(raw),auth=req.headers.authorization,publisher=spots.publishing(body.call);
+     if(publisher&&spots.authorized(body.call,auth)){
+      let confirmed=publisher.ready;
+      if(!confirmed&&upstream.origin==='https://zp5dxs.org'){
+       const registry=new URL(upstream);
+       registry.searchParams.set('call',body.call);
+       try{
+        const response=await fetch(registry,{signal:AbortSignal.timeout(3000),redirect:'error'});
+        const info=response.ok?(await response.json()).publishing:null;
+        confirmed=info?.ready===true&&info.node===publisher.node;
+       }catch{}
+      }
+      const [code,data]=await spots.send(body,auth,confirmed);
       return reply(code,data);
      }
     }
-    const upstream=new URL('api/spots'+url.search,process.env.SACW_LIVE_UPSTREAM.replace(/\/?$/,'/'));
     try{
      const remote=await fetch(upstream,{method:req.method,headers:req.method==='POST'?{'Content-Type':'application/json',Authorization:req.headers.authorization||''}:{},body:req.method==='POST'?raw:undefined,signal:AbortSignal.timeout(7000)});
      const data=await remote.json();
@@ -52,7 +62,7 @@ export function createServer(){const spots=createSpotService({verifiedStation:qr
    const [code,data]=await spots.send(JSON.parse(raw),req.headers.authorization);
    return reply(code,data);
   }
-  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.1',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
+  if(name==='health')return reply(200,{app:'sacw-web',version:'2.1.2',root:fileURLToPath(new URL('.',import.meta.url)).replace(/[\\/]$/,'')});
   if(name==='api/sync'||name==='api/live/events'){
    const upstream=new URL(url.pathname.replace(/^\/+/,'')+url.search,(process.env.SACW_LIVE_UPSTREAM||'http://127.0.0.1:18791/').replace(/\/?$/,'/'));
    if(name==='api/live/events'){const controller=new AbortController();res.on('close',()=>controller.abort());const remote=await fetch(upstream,{signal:controller.signal});if(!remote.ok)return reply(503,{error:'LIVE_OFFLINE'});res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache','X-Accel-Buffering':'no'});try{for await(const chunk of remote.body)res.write(chunk);}catch{}res.end();return;}
@@ -63,4 +73,4 @@ export function createServer(){const spots=createSpotService({verifiedStation:qr
   const data=await readFile(new URL(name,import.meta.url));res.writeHead(200,{'Content-Type':types[name.split('.').at(-1)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}).end(data);
  }catch(e){reply(400,{error:/^(QRZ_|CAT_)/.test(e.message)?e.message:'REQUEST_FAILED'});}
 });server.on('close',()=>spots.close());return server;}
-if(process.argv[1]&&fileURLToPath(import.meta.url).toLowerCase()===process.argv[1].toLowerCase())createServer().on('error',e=>{console.error(e.code==='EADDRINUSE'?'SACW: el puerto '+port+' ya estÃ¡ ocupado.':e.message);process.exitCode=1;}).listen(port,'127.0.0.1',()=>console.log('SACW 2.1: http://127.0.0.1:'+port));
+if(process.argv[1]&&fileURLToPath(import.meta.url).toLowerCase()===process.argv[1].toLowerCase())createServer().on('error',e=>{console.error(e.code==='EADDRINUSE'?'SACW: el puerto '+port+' ya estÃƒÂ¡ ocupado.':e.message);process.exitCode=1;}).listen(port,'127.0.0.1',()=>console.log('SACW 2.1: http://127.0.0.1:'+port));

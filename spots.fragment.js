@@ -5,13 +5,13 @@ let reports={sent:[],received:[],feeds:[]},spotReportCall='',spotFetching=false;
 function renderSpotReports(){
  const call=state.settings.mycall;
  const data=spotReportCall===call?reports:{sent:[],received:[],feeds:[]};
- $('spotPublisher').textContent=data.publishing?.node||t('spotUnavailable');
+ $('spotPublisher').textContent=data.publishing?.ready?data.publishing.node:data.publishing?t('spotRegistrationPending'):t('spotUnavailable');
  $('spotLiveFields').hidden=!data.publishing;
  $('spotCodeLabel').hidden=!data.publishing?.accessCode;
  $('spotNodeRegistration').hidden=data.publishing?.node!=='dx1.g5gdx.com:7300';
  $('spotToggle').disabled=!spotArmed&&!data.publishing?.ready;
  if(!data.publishing&&spotArmed)setSpotArmed(false);
- $('spotFeeds').textContent=['DXFun','RBN'].map(source=>source+' '+(data.feeds.find(feed=>feed.source===source)?.ready?'✓':'—')).join(' · ');
+ $('spotFeeds').textContent=['DXFun','RBN'].map(source=>source+' '+(data.feeds.find(feed=>feed.source===source)?.ready?'âœ“':'â€”')).join(' Â· ');
  for(const [id,entries] of [['sentSpots',data.sent],['receivedSpots',data.received]]){
   $(id).innerHTML=entries.length?entries.slice(0,30).map(spot=>'<li><time>'+new Date(spot.time).toISOString().slice(11,16)+'Z</time><strong>'+esc(id==='sentSpots'?spot.call:spot.by)+'</strong><span>'+formatHz(spot.hz)+' kHz</span><span>'+esc(spot.source)+'</span><small>'+esc(spot.comment)+'</small></li>').join(''):'<li>'+t('spotsEmpty')+'</li>';
  }
@@ -52,7 +52,7 @@ function updateAutoSpot(){
  spotBusy=true;
  lastSpotAttempt=now;
  spotDue=now+spotInterval();
- void requestJSON(appAPI('api/spots'),spotAuthorization(),{method:'POST',body:{call,hz}}).then(result=>{
+ void requestJSON(appAPI('api/spots'),spotAuthorization(),{method:'POST',body:{call,hz},timeout:12000}).then(result=>{
   $('spotResult').textContent=t(result.confirmed?'spotConfirmed':'spotQueued');
   void refreshSpotReports();
  }).catch(error=>{

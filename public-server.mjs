@@ -28,7 +28,7 @@ export function createPublicServer({dataDir=process.env.SACW_DATA_DIR||fileURLTo
    const [code,data]=await spots.send(JSON.parse(raw),req.headers.authorization);
    return reply(code,data);
   }
-   if(name==='health')return reply(200,{app:'sacw-log-public',version:'2.1.1',storage:'sqlite'});
+   if(name==='health')return reply(200,{app:'sacw-log-public',version:'2.1.2',storage:'sqlite'});
    if(name==='api/live/events'&&req.method==='GET'){
     const workspace=url.searchParams.get('workspace')||'demo',band=url.searchParams.get('band')||'ALL',power=url.searchParams.get('power')||'LOW';if(!['official','demo','free'].includes(workspace)||!['ALL','80','40','15','10'].includes(band)||!['LOW','HIGH','QRP'].includes(power))throw Error('SYNC_VALIDATION');if(clients.size>=300)return reply(503,{error:'LIVE_BUSY'});
     res.writeHead(200,{'Content-Type':'text/event-stream','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no'});const peer={res,workspace,band,power};clients.add(peer);sendBoard(peer);res.on('close',()=>clients.delete(peer));return;

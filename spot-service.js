@@ -25,7 +25,8 @@ export function createSpotService({env=process.env,connect=createConnection,cloc
   return match&&+match[2]>0&&+match[2]<=65535?[match[1].toLowerCase(),+match[2]]:null;
  };
  const publishEndpoint=endpoint(env.SACW_SPOT_NODE);
- const canPublish=env.SACW_SPOT_NODE_AUTHORIZED==='1'&&!!publishEndpoint&&!/(^|[.])dxfun(?:cluster)?[.]/.test(publishEndpoint[0]);
+ const supportedNode=!!publishEndpoint&&!/(^|[.])dxfun(?:cluster)?[.]/.test(publishEndpoint[0]);
+ const registeredCalls=new Set(String(env.SACW_SPOT_REGISTERED_CALLS||'').toUpperCase().split(/[\s,]+/).filter(call=>callPattern.test(call)));
  const keys=new Map();
  if(station&&env.SACW_SPOT_TOKEN?.length>=24)keys.set(station,env.SACW_SPOT_TOKEN);
  if(env.SACW_SPOT_KEYS){
@@ -37,7 +38,7 @@ export function createSpotService({env=process.env,connect=createConnection,cloc
  }
  const attempts=new Map(),sockets=new Set();
  let previousGlobal=-Infinity;
- const publishing=call=>canPublish&&callPattern.test(call||'')?{node:publishEndpoint.join(':'),ready:true,accessCode:keys.has(call)}:null;
+ const publishing=call=>supportedNode&&callPattern.test(call||'')?{node:publishEndpoint.join(':'),ready:registeredCalls.has(call),accessCode:keys.has(call)&&registeredCalls.has(call)}:null;
  function authorized(call,authorization){
   if(verifiedStation(authorization)===call)return true;
   const key=keys.get(call);
@@ -148,9 +149,10 @@ export function createSpotService({env=process.env,connect=createConnection,cloc
    return {publishing:publishing(call),feeds:feeds.map(feed=>({source:feed.source,ready:feed.ready})),sent:current.filter(row=>row.by===call).slice(0,30),received:current.filter(row=>row.call===call&&row.by!==call).slice(0,30)};
   },
   publishing,authorized,
-  async send(body,auth){
+  async send(body,auth,registrationConfirmed=false){
    const {call,hz}=body||{};
-   if(!publishing(call))return [503,{error:'SPOT_DISABLED'}];
+   const publisher=publishing(call);
+   if(!publisher||!publisher.ready&&!registrationConfirmed)return [403,{error:'SPOT_REGISTRATION'}];
    if(!authorized(call,auth))return [403,{error:'SPOT_ACCESS'}];
    if(!Number.isInteger(hz)||!bandOf(hz))return [400,{error:'SPOT_FREQUENCY'}];
    const time=clock();
