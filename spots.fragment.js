@@ -31,7 +31,7 @@ async function refreshSpotReports(){
  try{
   const data=await requestJSON(url+'?'+new URLSearchParams({call,band}));
   if(requestId!==id)return;
-  if(![data.feeds,cluster,data.received].every(Array.isArray))throw Error('SPOT_RESPONSE');
+  if(![data.feeds,data.cluster,data.received].every(Array.isArray))throw Error('SPOT_RESPONSE');
   reports=data;spotOffline=false;
  }catch{
   if(requestId!==id)return;
